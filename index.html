@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tip Calculator</title>
+  <style>
+    :root {
+      --bg: #f4f1ea;
+      --bg-accent: #e8efe8;
+      --surface: rgba(255, 255, 255, 0.82);
+      --ink: #1c241c;
+      --muted: #5c675c;
+      --line: rgba(28, 36, 28, 0.12);
+      --brand: #2f6f4e;
+      --brand-strong: #1f4d36;
+      --brand-soft: #d7eadc;
+      --shadow: 0 24px 50px rgba(31, 77, 54, 0.12);
+      --radius: 28px;
+    }
+
+    html[data-theme="dark"] {
+      --bg: #121714;
+      --bg-accent: #1a2420;
+      --surface: rgba(24, 32, 28, 0.88);
+      --ink: #eef4ee;
+      --muted: #a4b2a8;
+      --line: rgba(238, 244, 238, 0.12);
+      --brand: #7dcea0;
+      --brand-strong: #b7ebc8;
+      --brand-soft: #24352c;
+      --shadow: 0 24px 50px rgba(0, 0, 0, 0.35);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 12% 10%, var(--bg-accent), transparent 36%),
+        radial-gradient(circle at 88% 88%, var(--brand-soft), transparent 32%),
+        var(--bg);
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(920px, 100%);
+      background: var(--surface);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      overflow: hidden;
+    }
+
+    .panel {
+      padding: 36px;
+    }
+
+    .results {
+      background: linear-gradient(180deg, var(--brand-strong), var(--brand));
+      color: #f7fff9;
+    }
+
+    html[data-theme="dark"] .results {
+      background: linear-gradient(180deg, #163024, #1e4634);
+    }
+
+    .top-row,
+    .heading-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 1.7rem;
+    }
+
+    .lede {
+      margin: 0 0 28px;
+      color: var(--muted);
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 650;
+      margin-bottom: 8px;
+    }
+
+    .field {
+      margin-bottom: 22px;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-size: 1.05rem;
+    }
+
+    input[type="number"]:focus,
+    input[type="range"]:focus-visible,
+    button:focus-visible {
+      outline: 3px solid var(--brand);
+      outline-offset: 2px;
+    }
+
+    .presets {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .presets button,
+    .theme-toggle {
+      border: 1px solid var(--line);
+      background: transparent;
+      color: inherit;
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-weight: 650;
+    }
+
+    .presets button[aria-pressed="true"] {
+      background: var(--brand);
+      color: #fff;
+      border-color: var(--brand);
+    }
+
+    html[data-theme="dark"] .presets button[aria-pressed="true"] {
+      color: #102018;
+    }
+
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      accent-color: var(--brand);
+    }
+
+    .tip-value {
+      min-width: 48px;
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    .result-card {
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 18px;
+      padding: 16px 18px;
+      margin-top: 14px;
+    }
+
+    .result-card span {
+      display: block;
+      opacity: 0.85;
+      font-size: 0.85rem;
+    }
+
+    .result-card strong {
+      font-size: 1.7rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hint {
+      margin-top: 18px;
+      opacity: 0.85;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 760px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="panel">
+      <div class="heading-row">
+        <div>
+          <h1>Tip calculator</h1>
+          <p class="lede">Bill, tip, and split update as you type.</p>
+        </div>
+        <button class="theme-toggle" id="themeToggle" type="button" aria-pressed="false">
+          Dark mode
+        </button>
+      </div>
+
+      <div class="field">
+        <label for="bill">Bill amount</label>
+        <input id="bill" type="number" min="0" step="0.01" value="50" />
+      </div>
+
+      <div class="field">
+        <label for="tip">Tip percent</label>
+        <div class="presets" role="group" aria-label="Tip presets">
+          <button type="button" data-tip="10">10%</button>
+          <button type="button" data-tip="15">15%</button>
+          <button type="button" data-tip="20">20%</button>
+        </div>
+        <div class="slider-row">
+          <input id="tip" type="range" min="0" max="40" step="1" value="15" />
+          <span class="tip-value" id="tipLabel">15%</span>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="people">Number of people</label>
+        <input id="people" type="number" min="1" step="1" value="2" />
+      </div>
+    </section>
+
+    <section class="panel results" aria-live="polite">
+      <div class="result-card">
+        <span>Tip</span>
+        <strong id="tipAmount">$0.00</strong>
+      </div>
+      <div class="result-card">
+        <span>Total</span>
+        <strong id="totalAmount">$0.00</strong>
+      </div>
+      <div class="result-card">
+        <span>Per person</span>
+        <strong id="perPerson">$0.00</strong>
+      </div>
+      <p class="hint" id="statusHint">Split evenly between 2 people.</p>
+    </section>
+  </main>
+
+  <script>
+    const billInput = document.getElementById("bill");
+    const tipInput = document.getElementById("tip");
+    const peopleInput = document.getElementById("people");
+    const tipLabel = document.getElementById("tipLabel");
+    const tipAmountEl = document.getElementById("tipAmount");
+    const totalAmountEl = document.getElementById("totalAmount");
+    const perPersonEl = document.getElementById("perPerson");
+    const statusHint = document.getElementById("statusHint");
+    const themeToggle = document.getElementById("themeToggle");
+    const presetButtons = [...document.querySelectorAll("[data-tip]")];
+
+    const money = new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD"
+    });
+
+    function setTheme(theme) {
+      document.documentElement.dataset.theme = theme;
+      const dark = theme === "dark";
+      themeToggle.setAttribute("aria-pressed", String(dark));
+      themeToggle.textContent = dark ? "Light mode" : "Dark mode";
+      localStorage.setItem("tip-theme", theme);
+    }
+
+    const savedTheme = localStorage.getItem("tip-theme");
+    const preferred = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    setTheme(savedTheme || preferred);
+
+    themeToggle.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      setTheme(next);
+    });
+
+    function syncPresets(value) {
+      presetButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(Number(button.dataset.tip) === value));
+      });
+    }
+
+    function calculate() {
+      const bill = Math.max(0, Number(billInput.value) || 0);
+      const tipPercent = Number(tipInput.value) || 0;
+      const people = Math.max(1, Math.floor(Number(peopleInput.value) || 1));
+
+      if (Number(peopleInput.value) < 1) {
+        peopleInput.value = people;
+      }
+
+      const tip = bill * (tipPercent / 100);
+      const total = bill + tip;
+      const perPerson = total / people;
+
+      tipLabel.textContent = `${tipPercent}%`;
+      tipAmountEl.textContent = money.format(tip);
+      totalAmountEl.textContent = money.format(total);
+      perPersonEl.textContent = money.format(perPerson);
+      statusHint.textContent = `Split evenly between ${people} ${people === 1 ? "person" : "people"}.`;
+      syncPresets(tipPercent);
+    }
+
+    presetButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        tipInput.value = button.dataset.tip;
+        calculate();
+      });
+    });
+
+    [billInput, tipInput, peopleInput].forEach((input) => {
+      input.addEventListener("input", calculate);
+    });
+
+    calculate();
+  </script>
+</body>
+</html>
